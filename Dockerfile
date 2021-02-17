@@ -29,6 +29,7 @@ RUN apt-get install -y --no-install-recommends \
   fonts-noto-cjk \
   fonts-noto-hinted \
   fonts-noto-unhinted \
+  fonts-open-sans \
   gcc \
   gdal-bin \
   git-core \
@@ -132,10 +133,33 @@ RUN mkdir -p /home/renderer/src \
  && scripts/get-shapefiles.py \
  && rm /home/renderer/src/openstreetmap-carto/data/*.zip
 
+RUN mkdir -p /home/renderer/src \
+ && cd /home/renderer/src \
+ && git clone https://github.com/mapbox/osm-bright.git \
+ && cd osm-bright/osm-bright \
+ && rm -rf .git \
+ && npm install -g carto@0.18.2 \
+ && mkdir data \
+ && cd data \
+ && wget -O simplified-land-polygons.zip https://osmdata.openstreetmap.de/download/simplified-land-polygons-complete-3857.zip \
+ && wget -O land-polygons.zip https://osmdata.openstreetmap.de/download/land-polygons-split-3857.zip \
+ && wget -O populated-places.zip http://mapbox-geodata.s3.amazonaws.com/natural-earth-1.4.0/cultural/10m-populated-places-simple.zip \
+ && unzip simplified-land-polygons.zip \
+ && unzip land-polygons.zip \
+ && unzip -d populated-places populated-places.zip \
+ && rm /home/renderer/src/osm-bright/osm-bright/data/*.zip \
+ && cd ../ \
+ && sed -i 's/"dbname": "osm"/"dbname": "gis"/g' osm-bright.osm2pgsql.mml \
+ && sed -i 's,http://data.openstreetmapdata.com/simplified-land-polygons-complete-3857.zip,data/simplified-land-polygons-complete-3857/simplified_land_polygons.shp,g' osm-bright.osm2pgsql.mml \
+ && sed -i 's,http://data.openstreetmapdata.com/land-polygons-split-3857.zip,data/land-polygons-split-3857/land_polygons.shp,g' osm-bright.osm2pgsql.mml \
+ && sed -i 's,http://mapbox-geodata.s3.amazonaws.com/natural-earth-1.4.0/cultural/10m-populated-places-simple.zip,data/populated-places/10m-populated-places-simple.shp,g' osm-bright.osm2pgsql.mml \
+ && carto osm-bright.osm2pgsql.mml > mapnik.xml
+
 # Configure renderd
 RUN sed -i 's/renderaccount/renderer/g' /usr/local/etc/renderd.conf \
  && sed -i 's/\/truetype//g' /usr/local/etc/renderd.conf \
- && sed -i 's/hot/tile/g' /usr/local/etc/renderd.conf
+ && sed -i 's/hot/tile/g' /usr/local/etc/renderd.conf \
+ && sed -i 's/openstreetmap-carto/osm-bright\/osm-bright/g' /usr/local/etc/renderd.conf
 
 # Configure Apache
 RUN mkdir /var/lib/mod_tile \
