@@ -74,7 +74,7 @@ if [ "$1" = "import" ]; then
 
     # Import data
     # sudo -u renderer osm2pgsql -d gis --create -G --hstore --tag-transform-script /home/renderer/src/openstreetmap-carto/openstreetmap-carto.lua --number-processes ${THREADS:-4} -S /home/renderer/src/openstreetmap-carto/openstreetmap-carto.style /data.osm.pbf ${OSM2PGSQL_EXTRA_ARGS}
-    sudo -u renderer osm2pgsql -d gis --create -G --hstore  --number-processes ${THREADS:-4} /data.osm.pbf ${OSM2PGSQL_EXTRA_ARGS}
+    sudo -u renderer osm2pgsql -d gis --create --slim -G --hstore --number-processes ${THREADS:-1} /data.osm.pbf ${OSM2PGSQL_EXTRA_ARGS}
 
     # Create indexes
     sudo -u postgres psql -d gis -f indexes.sql
@@ -106,7 +106,7 @@ if [ "$1" = "run" ]; then
     setPostgresPassword
 
     # Configure renderd threads
-    sed -i -E "s/num_threads=[0-9]+/num_threads=${THREADS:-4}/g" /usr/local/etc/renderd.conf
+    sed -i -E "s/num_threads=[0-9]+/num_threads=${THREADS:-1}/g" /usr/local/etc/renderd.conf
 
     # start cron job to trigger consecutive updates
     if [ "$UPDATES" = "enabled" ] || [ "$UPDATES" = "1" ]; then

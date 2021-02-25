@@ -30,6 +30,12 @@ RUN apt-get install -y --no-install-recommends \
   fonts-noto-hinted \
   fonts-noto-unhinted \
   fonts-open-sans \
+  fonts-roboto \
+  fonts-dejavu-core \
+  fonts-sipa-arundina \
+  fonts-sil-padauk \
+  fonts-hanazono \ 
+  ttf-unifont \
   gcc \
   gdal-bin \
   git-core \
@@ -71,7 +77,6 @@ RUN apt-get install -y --no-install-recommends \
   python3-shapely \
   sudo \
   tar \
-  ttf-unifont \
   unzip \
   wget \
   zlib1g-dev \
@@ -133,10 +138,9 @@ RUN mkdir -p /home/renderer/src \
  && scripts/get-shapefiles.py \
  && rm /home/renderer/src/openstreetmap-carto/data/*.zip
 
-RUN mkdir -p /home/renderer/src \
- && cd /home/renderer/src \
- && git clone https://github.com/mapbox/osm-bright.git \
- && cd osm-bright/osm-bright \
+RUN mkdir -p /home/renderer/src
+COPY style /home/renderer/src
+RUN && cd /home/renderer/src/style \
  && rm -rf .git \
  && npm install -g carto@0.18.2 \
  && mkdir data \
@@ -147,13 +151,13 @@ RUN mkdir -p /home/renderer/src \
  && unzip simplified-land-polygons.zip \
  && unzip land-polygons.zip \
  && unzip -d populated-places populated-places.zip \
- && rm /home/renderer/src/osm-bright/osm-bright/data/*.zip \
+ && rm /home/renderer/src/style/data/*.zip \
  && cd ../ \
- && sed -i 's/"dbname": "osm"/"dbname": "gis"/g' osm-bright.osm2pgsql.mml \
- && sed -i 's,http://data.openstreetmapdata.com/simplified-land-polygons-complete-3857.zip,data/simplified-land-polygons-complete-3857/simplified_land_polygons.shp,g' osm-bright.osm2pgsql.mml \
- && sed -i 's,http://data.openstreetmapdata.com/land-polygons-split-3857.zip,data/land-polygons-split-3857/land_polygons.shp,g' osm-bright.osm2pgsql.mml \
- && sed -i 's,http://mapbox-geodata.s3.amazonaws.com/natural-earth-1.4.0/cultural/10m-populated-places-simple.zip,data/populated-places/10m-populated-places-simple.shp,g' osm-bright.osm2pgsql.mml \
- && carto osm-bright.osm2pgsql.mml > mapnik.xml
+ && sed -i 's/"dbname": "osm"/"dbname": "gis"/g' project.mml \
+ && sed -i 's,http://data.openstreetmapdata.com/simplified-land-polygons-complete-3857.zip,data/simplified-land-polygons-complete-3857/simplified_land_polygons.shp,g' project.mml \
+ && sed -i 's,http://data.openstreetmapdata.com/land-polygons-split-3857.zip,data/land-polygons-split-3857/land_polygons.shp,g' project.mml \
+ && sed -i 's,http://mapbox-geodata.s3.amazonaws.com/natural-earth-1.4.0/cultural/10m-populated-places-simple.zip,data/populated-places/10m-populated-places-simple.shp,g' project.mml \
+ && carto project.mml > mapnik.xml
 
 # Configure renderd
 RUN sed -i 's/renderaccount/renderer/g' /usr/local/etc/renderd.conf \
