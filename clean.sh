@@ -1,3 +1,2 @@
-docker rm import-tile-data
-docker stop tileserver
-docker rm tileserver
+docker volume rm openstreetmap-data
+docker volume rm openstreetmap-rendered-tiles

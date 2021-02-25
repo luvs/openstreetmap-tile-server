@@ -138,7 +138,7 @@ RUN mkdir -p /home/renderer/src \
  && scripts/get-shapefiles.py \
  && rm /home/renderer/src/openstreetmap-carto/data/*.zip
 
-COPY style /home/renderer/src
+COPY style /home/renderer/src/style
 RUN cd /home/renderer/src/style \
  && rm -rf .git \
  && npm install -g carto@0.18.2 \
